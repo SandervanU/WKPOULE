@@ -41,10 +41,10 @@ matches = df.iloc[MATCH_START:].copy()
 # filter echte rijen
 matches = matches[matches.iloc[:, 2].notna() & matches.iloc[:, 3].notna()]
 
-HOME_COL = 2
-AWAY_COL = 3
-RESULT_COL = 4
-PRED_START = 5
+HOME_COL = 3
+AWAY_COL = 4
+RESULT_COL = 5
+PRED_START = 6
 
 # =========================
 # STAND BEREKENEN
