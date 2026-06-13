@@ -2,24 +2,16 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-import shutil
-from config import DATA
-
-SOURCE = Path(__file__).resolve().parent / "data.xlsx"
-
-if not DATA.exists():
-    shutil.copy(SOURCE, DATA)
+from config import DATA, init_data
 
 st.set_page_config(page_title="WK Poule", page_icon="⚽", layout="wide")
 
+init_data()
+
 st.title("⚽ WK Poule")
 
-if not DATA.exists():
-    st.error("data.xlsx niet gevonden")
-    st.stop()
-
 # =========================
-# FORCE RELOAD DATA (NO CACHE ISSUES)
+# LOAD DATA
 # =========================
 @st.cache_data(ttl=0)
 def load_data():
@@ -43,24 +35,19 @@ def find_match_start(df):
 MATCH_START = find_match_start(df)
 
 if MATCH_START is None:
-    st.error("Kon match tabel niet vinden in Excel")
+    st.error("Kon match tabel niet vinden")
     st.stop()
 
 matches = df.iloc[MATCH_START:].copy()
-
-# filter echte rijen
 matches = matches[matches.iloc[:, 3].notna() & matches.iloc[:, 4].notna()]
 
-# =========================
-# COLUMN MAPPING (JOUW FILE)
-# =========================
 HOME_COL = 3
 AWAY_COL = 4
 RESULT_COL = 5
 PRED_START = 7
 
 # =========================
-# STAND BEREKENEN
+# STAND
 # =========================
 scores = {p: 0 for p in players}
 
@@ -83,7 +70,7 @@ st.dataframe(stand, use_container_width=True, hide_index=True)
 st.divider()
 
 # =========================
-# MATCH VIEW
+# MATCHES
 # =========================
 st.subheader("📅 Wedstrijden")
 
