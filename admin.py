@@ -16,10 +16,12 @@ if not DATA.exists():
 xls = pd.ExcelFile(DATA)
 df = pd.read_excel(xls, xls.sheet_names[0], header=None)
 
-MATCH_START = 12
-COL_HOME = 2
-COL_AWAY = 3
-COL_RESULT = 4
+MATCH_START = 13
+HOME_COL = 3
+AWAY_COL = 4
+RESULT_COL = 5
+PRED_START = 6
+
 
 matches = df.iloc[MATCH_START:].copy()
 matches = matches.dropna(subset=[COL_HOME, COL_AWAY])
