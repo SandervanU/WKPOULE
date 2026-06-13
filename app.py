@@ -2,7 +2,13 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
+import shutil
 from config import DATA
+
+SOURCE = Path(__file__).resolve().parent / "data.xlsx"
+
+if not DATA.exists():
+    shutil.copy(SOURCE, DATA)
 
 st.set_page_config(page_title="WK Poule", page_icon="⚽", layout="wide")
 
