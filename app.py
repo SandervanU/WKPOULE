@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-st.set_page_config(page_title="WK Poule", page_icon="⚽", layout="wide")
-
 from config import DATA
+
+st.set_page_config(page_title="WK Poule", page_icon="⚽", layout="wide")
 
 st.title("⚽ WK Poule")
 
@@ -12,55 +12,47 @@ if not DATA.exists():
     st.error("data.xlsx niet gevonden")
     st.stop()
 
-# -----------------------------
-# LOAD EXCEL (eerste sheet)
-# -----------------------------
 xls = pd.ExcelFile(DATA)
 df = pd.read_excel(xls, xls.sheet_names[0], header=None)
 
-# -----------------------------
-# CONFIG (jouw structuur)
-# -----------------------------
-BONUS_START = 5
-MATCH_START = 12
-
-COL_HOME = 2
-COL_AWAY = 3
-COL_RESULT = 4
-
-PRED_START = 5   # Jacq start hier
-NUM_PLAYERS = 6
-
 players = ["Jacq", "Joost", "Sander", "Tessa", "Sander 2", "Madelon"]
 
-# -----------------------------
-# BONUS (optioneel tonen)
-# -----------------------------
-st.subheader("🎯 Bonusvragen")
+# =========================
+# 🔥 FIND START MATCH BLOCK
+# =========================
+def find_match_start(df):
+    for i in range(len(df)):
+        row = df.iloc[i].astype(str).tolist()
+        if "Datum" in row and "Thuis" in row and "Uit" in row:
+            return i + 1
+    return None
 
-bonus = df.iloc[BONUS_START:BONUS_START+5, :]
+MATCH_START = find_match_start(df)
 
-for i, row in bonus.iterrows():
-    st.write(f"**{row[0]}**")
-    answers = row[5:11].tolist()
-    st.write(dict(zip(players, answers)))
-    st.divider()
+if MATCH_START is None:
+    st.error("Kon match tabel niet vinden in Excel")
+    st.stop()
 
-# -----------------------------
-# WEDSTRIJDEN
-# -----------------------------
-st.subheader("📅 Wedstrijden")
-
+# =========================
+# MATCH DATA CLEANING
+# =========================
 matches = df.iloc[MATCH_START:].copy()
-matches = matches.dropna(subset=[COL_HOME, COL_AWAY])
 
-# -----------------------------
+# filter echte rijen
+matches = matches[matches.iloc[:, 2].notna() & matches.iloc[:, 3].notna()]
+
+HOME_COL = 2
+AWAY_COL = 3
+RESULT_COL = 4
+PRED_START = 5
+
+# =========================
 # STAND BEREKENEN
-# -----------------------------
+# =========================
 scores = {p: 0 for p in players}
 
 for _, row in matches.iterrows():
-    uitslag = row[COL_RESULT]
+    uitslag = row[RESULT_COL]
 
     for i, p in enumerate(players):
         pred = row[PRED_START + i]
@@ -77,13 +69,18 @@ st.dataframe(stand, use_container_width=True, hide_index=True)
 
 st.divider()
 
-# -----------------------------
+# =========================
 # MATCH VIEW
-# -----------------------------
+# =========================
+st.subheader("📅 Wedstrijden")
+
 for _, row in matches.iterrows():
-    home = row[COL_HOME]
-    away = row[COL_AWAY]
-    uitslag = row[COL_RESULT]
+    home = row[HOME_COL]
+    away = row[AWAY_COL]
+    uitslag = row[RESULT_COL]
+
+    if pd.isna(home) or pd.isna(away):
+        continue
 
     with st.expander(f"{home} - {away}"):
 
