@@ -44,7 +44,7 @@ matches = matches[matches.iloc[:, 2].notna() & matches.iloc[:, 3].notna()]
 HOME_COL = 3
 AWAY_COL = 4
 RESULT_COL = 5
-PRED_START = 6
+PRED_START = 7
 
 # =========================
 # STAND BEREKENEN
