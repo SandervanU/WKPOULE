@@ -5,7 +5,7 @@ from pathlib import Path
 
 st.set_page_config(page_title="Admin WK Poule", layout="wide")
 
-DATA = Path("data.xlsx")
+from config import DATA
 
 st.title("🔧 Admin - WK Poule")
 
