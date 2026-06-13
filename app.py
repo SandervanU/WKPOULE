@@ -12,13 +12,20 @@ if not DATA.exists():
     st.error("data.xlsx niet gevonden")
     st.stop()
 
-xls = pd.ExcelFile(DATA)
-df = pd.read_excel(xls, xls.sheet_names[0], header=None)
+# =========================
+# FORCE RELOAD DATA (NO CACHE ISSUES)
+# =========================
+@st.cache_data(ttl=0)
+def load_data():
+    xls = pd.ExcelFile(DATA)
+    return pd.read_excel(xls, xls.sheet_names[0], header=None)
+
+df = load_data()
 
 players = ["Jacq", "Joost", "Sander", "Tessa", "Sander 2", "Madelon"]
 
 # =========================
-# 🔥 FIND START MATCH BLOCK
+# FIND MATCH START
 # =========================
 def find_match_start(df):
     for i in range(len(df)):
@@ -33,14 +40,14 @@ if MATCH_START is None:
     st.error("Kon match tabel niet vinden in Excel")
     st.stop()
 
-# =========================
-# MATCH DATA CLEANING
-# =========================
 matches = df.iloc[MATCH_START:].copy()
 
 # filter echte rijen
-matches = matches[matches.iloc[:, 2].notna() & matches.iloc[:, 3].notna()]
+matches = matches[matches.iloc[:, 3].notna() & matches.iloc[:, 4].notna()]
 
+# =========================
+# COLUMN MAPPING (JOUW FILE)
+# =========================
 HOME_COL = 3
 AWAY_COL = 4
 RESULT_COL = 5
