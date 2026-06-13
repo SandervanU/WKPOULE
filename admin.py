@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 from pathlib import Path
@@ -13,13 +12,16 @@ if not DATA.exists():
     st.error("data.xlsx niet gevonden")
     st.stop()
 
+# =========================
+# LOAD DATA
+# =========================
 xls = pd.ExcelFile(DATA)
 df = pd.read_excel(xls, xls.sheet_names[0], header=None)
 
 players = ["Jacq", "Joost", "Sander", "Tessa", "Sander 2", "Madelon"]
 
 # =========================
-# FIND MATCH START (same logic as app)
+# FIND MATCH START (same as app)
 # =========================
 def find_match_start(df):
     for i in range(len(df)):
@@ -36,7 +38,7 @@ if MATCH_START is None:
 
 matches = df.iloc[MATCH_START:].copy()
 
-# filter echte rijen
+# filter valid rows
 matches = matches[matches.iloc[:, 3].notna() & matches.iloc[:, 4].notna()]
 
 # =========================
@@ -67,9 +69,17 @@ st.write("Huidige uitslag:", current)
 new_result = st.selectbox("Nieuwe uitslag", ["1", "2", "3"], index=0)
 
 # =========================
-# SAVE
+# SAVE (IMPORTANT FIX)
 # =========================
 if st.button("Opslaan"):
+
     df.loc[excel_row, RESULT_COL] = new_result
-    df.to_excel(DATA, index=False, header=False)
+
+    # write safely back to Excel
+    with open(DATA, "wb") as f:
+        df.to_excel(f, index=False, header=False)
+
     st.success("Opgeslagen!")
+
+    # force refresh admin page
+    st.rerun()
