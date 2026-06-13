@@ -3,9 +3,9 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-st.set_page_config(page_title="Admin WK Poule", layout="wide")
-
 from config import DATA
+
+st.set_page_config(page_title="Admin WK Poule", layout="wide")
 
 st.title("🔧 Admin - WK Poule")
 
@@ -16,18 +16,42 @@ if not DATA.exists():
 xls = pd.ExcelFile(DATA)
 df = pd.read_excel(xls, xls.sheet_names[0], header=None)
 
-MATCH_START = 13
+players = ["Jacq", "Joost", "Sander", "Tessa", "Sander 2", "Madelon"]
+
+# =========================
+# FIND MATCH START (same logic as app)
+# =========================
+def find_match_start(df):
+    for i in range(len(df)):
+        row = df.iloc[i].astype(str).tolist()
+        if "Datum" in row and "Thuis" in row and "Uit" in row:
+            return i + 1
+    return None
+
+MATCH_START = find_match_start(df)
+
+if MATCH_START is None:
+    st.error("Kon match tabel niet vinden")
+    st.stop()
+
+matches = df.iloc[MATCH_START:].copy()
+
+# filter echte rijen
+matches = matches[matches.iloc[:, 3].notna() & matches.iloc[:, 4].notna()]
+
+# =========================
+# SAME COLUMN MAPPING AS APP
+# =========================
 HOME_COL = 3
 AWAY_COL = 4
 RESULT_COL = 5
-PRED_START = 6
+PRED_START = 7
 
-
-matches = df.iloc[MATCH_START:].copy()
-matches = matches.dropna(subset=[COL_HOME, COL_AWAY])
-
+# =========================
+# MATCH SELECT
+# =========================
 match_options = [
-    f"{i} - {row[COL_HOME]} vs {row[COL_AWAY]}"
+    f"{i} - {row[HOME_COL]} vs {row[AWAY_COL]}"
     for i, (_, row) in enumerate(matches.iterrows())
 ]
 
@@ -36,13 +60,16 @@ selected = st.selectbox("Select match", match_options)
 match_idx = int(selected.split(" - ")[0])
 excel_row = matches.index[match_idx]
 
-current = df.loc[excel_row, COL_RESULT]
+current = df.loc[excel_row, RESULT_COL]
 
 st.write("Huidige uitslag:", current)
 
 new_result = st.selectbox("Nieuwe uitslag", ["1", "2", "3"], index=0)
 
+# =========================
+# SAVE
+# =========================
 if st.button("Opslaan"):
-    df.loc[excel_row, COL_RESULT] = new_result
+    df.loc[excel_row, RESULT_COL] = new_result
     df.to_excel(DATA, index=False, header=False)
     st.success("Opgeslagen!")
