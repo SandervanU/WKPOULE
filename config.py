@@ -1,4 +1,3 @@
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
-DATA = BASE_DIR / "data.xlsx"
+DATA = Path("/tmp/data.xlsx")
