@@ -3,46 +3,44 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-st.set_page_config(page_title="Admin", page_icon="🔒")
+st.set_page_config(page_title="Admin WK Poule", layout="wide")
 
-PASSWORD = "wk2026"
 DATA = Path("data.xlsx")
 
-st.title("🔒 Admin Portal")
-
-pwd = st.text_input("Wachtwoord", type="password")
-
-if pwd != PASSWORD:
-    st.stop()
-
-uploaded = st.file_uploader("Upload data.xlsx", type=["xlsx"])
-
-if uploaded:
-    with open(DATA, "wb") as f:
-        f.write(uploaded.getbuffer())
-    st.success("Excel opgeslagen")
+st.title("🔧 Admin - WK Poule")
 
 if not DATA.exists():
+    st.error("data.xlsx niet gevonden")
     st.stop()
 
-wedstrijden = pd.read_excel(DATA, sheet_name="Wedstrijden")
+xls = pd.ExcelFile(DATA)
+df = pd.read_excel(xls, xls.sheet_names[0], header=None)
 
-wedstrijd = st.selectbox(
-    "Selecteer wedstrijd",
-    wedstrijden.index,
-    format_func=lambda x: f"{wedstrijden.loc[x,'Thuis']} - {wedstrijden.loc[x,'Uit']}"
-)
+MATCH_START = 12
+COL_HOME = 2
+COL_AWAY = 3
+COL_RESULT = 4
 
-uitslag = st.selectbox(
-    "Resultaat",
-    ["1","2","3"],
-    help="1=Thuis wint, 2=Gelijkspel, 3=Uit wint"
-)
+matches = df.iloc[MATCH_START:].copy()
+matches = matches.dropna(subset=[COL_HOME, COL_AWAY])
+
+match_options = [
+    f"{i} - {row[COL_HOME]} vs {row[COL_AWAY]}"
+    for i, (_, row) in enumerate(matches.iterrows())
+]
+
+selected = st.selectbox("Select match", match_options)
+
+match_idx = int(selected.split(" - ")[0])
+excel_row = matches.index[match_idx]
+
+current = df.loc[excel_row, COL_RESULT]
+
+st.write("Huidige uitslag:", current)
+
+new_result = st.selectbox("Nieuwe uitslag", ["1", "2", "3"], index=0)
 
 if st.button("Opslaan"):
-    wedstrijden.loc[wedstrijd, "Uitslag"] = uitslag
-
-    with pd.ExcelWriter(DATA, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
-        wedstrijden.to_excel(writer, sheet_name="Wedstrijden", index=False)
-
-    st.success("Uitslag opgeslagen")
+    df.loc[excel_row, COL_RESULT] = new_result
+    df.to_excel(DATA, index=False, header=False)
+    st.success("Opgeslagen!")
