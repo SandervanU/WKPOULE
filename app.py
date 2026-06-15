@@ -3,6 +3,7 @@ import pandas as pd
 
 from config import DATA, init_data
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 st.set_page_config(
     page_title="WK Poule",
@@ -14,10 +15,20 @@ init_data()
 
 st.title("⚽ WK Poule")
 if DATA.exists():
-    modified = datetime.fromtimestamp(DATA.stat().st_mtime)
 
-    st.caption(
-        f"🕒 Laatst bijgewerkt: {modified.strftime('%d-%m-%Y %H:%M:%S')}"
+    modified = datetime.fromtimestamp(
+        DATA.stat().st_mtime,
+        tz=ZoneInfo("UTC")
+    )
+
+    nl_time = modified.astimezone(
+        ZoneInfo("Europe/Amsterdam")
+    )
+
+    st.info(
+        f"🕒 Laatst bijgewerkt op "
+        f"{nl_time.strftime('%d-%m-%Y')} om "
+        f"{nl_time.strftime('%H:%M:%S')}"
     )
 # =========================
 # LOAD DATA
