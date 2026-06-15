@@ -92,6 +92,15 @@ for _, row in matches.iterrows():
 
     uitslag = row[RESULT_COL]
 
+    home = str(row[HOME_COL]).strip()
+    away = str(row[AWAY_COL]).strip()
+
+    # Nederland wedstrijd = 2 punten
+    match_points = 2 if (
+        home == "Nederland"
+        or away == "Nederland"
+    ) else 1
+
     for i, p in enumerate(players):
 
         pred = row[PRED_START + i]
@@ -99,7 +108,7 @@ for _, row in matches.iterrows():
         if pd.notna(uitslag) and pd.notna(pred):
 
             if str(pred).strip() == str(uitslag).strip():
-                scores[p] += 1
+                scores[p] += match_points
 
 # bonusvragen
 for _, row in bonus_df.iterrows():
