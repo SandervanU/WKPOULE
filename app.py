@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 
 from config import DATA, init_data
+from datetime import datetime
 
 st.set_page_config(
     page_title="WK Poule",
@@ -12,7 +13,12 @@ st.set_page_config(
 init_data()
 
 st.title("⚽ WK Poule")
+if DATA.exists():
+    modified = datetime.fromtimestamp(DATA.stat().st_mtime)
 
+    st.caption(
+        f"🕒 Laatst bijgewerkt: {modified.strftime('%d-%m-%Y %H:%M:%S')}"
+    )
 # =========================
 # LOAD DATA
 # =========================
