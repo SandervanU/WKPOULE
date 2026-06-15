@@ -62,7 +62,7 @@ if MATCH_START is None:
 # BONUSVRAGEN
 # =========================
 BONUS_START = 5
-BONUS_END = 10
+BONUS_END = 11
 
 bonus_df = df.iloc[BONUS_START:BONUS_END].copy()
 
